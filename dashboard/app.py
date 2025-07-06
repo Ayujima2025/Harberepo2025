@@ -1,18 +1,31 @@
 import streamlit as st
 import sqlite3
 
-# Connect to database
-conn = sqlite3.connect('data/demo.db')
-c = conn.cursor()
-
+# Page title
 st.title("📊 Demo Dashboard")
 
-# Example: Show number of users (if table exists)
-try:
-    c.execute("SELECT COUNT(*) FROM users")
-    count = c.fetchone()[0]
-    st.success(f"Total users in database: {count}")
-except:
-    st.warning("Users table not found. Please initialize the database.")
+# Connect to SQLite database
+def get_connection():
+    try:
+        conn = sqlite3.connect('data/demo.db')
+        return conn
+    except sqlite3.Error as e:
+        st.error(f"Database connection failed: {e}")
+        return None
 
-conn.close()
+# Main logic
+def show_user_count():
+    conn = get_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM users")
+            count = cursor.fetchone()[0]
+            st.success(f"✅ Total users in database: {count}")
+        except sqlite3.OperationalError:
+            st.warning("⚠️ 'users' table not found. Please initialize the database.")
+        finally:
+            conn.close()
+
+# Run the function
+show_user_count()
